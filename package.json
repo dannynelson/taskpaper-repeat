@@ -1,0 +1,29 @@
+{
+  "name": "taskpaper-repeat",
+  "version": "1.0.0",
+  "description": "Manage recurring tasks in taskpaper",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dannynelson/taskpaper-repeat.git"
+  },
+  "keywords": [
+    "taskpaper"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dannynelson/taskpaper-repeat/issues"
+  },
+  "homepage": "https://github.com/dannynelson/taskpaper-repeat#readme",
+  "dependencies": {
+    "birch-outline": "^0.2.1",
+    "lolex": "^1.6.0",
+    "mocha": "^3.2.0",
+    "moment": "^2.18.1"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {}
+}
