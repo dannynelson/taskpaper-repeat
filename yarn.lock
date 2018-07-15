@@ -204,6 +204,10 @@ lodash.keys@^3.0.0:
     lodash.isarguments "^3.0.0"
     lodash.isarray "^3.0.0"
 
+lodash@^4.17.10:
+  version "4.17.10"
+  resolved "https://npm.goodeggs.com/lodash/-/lodash-4.17.10.tgz#1b7793cf7259ea38fb3661d4d38b3260af8ae4e7"
+
 lolex@^1.6.0:
   version "1.6.0"
   resolved "https://npm.goodeggs.com/lolex/-/lolex-1.6.0.tgz#3a9a0283452a47d7439e72731b9e07d7386e49f6"

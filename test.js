@@ -1,4 +1,5 @@
 const {describe, it, beforeEach} = require('mocha');
+const _ = require('lodash');
 const birch = require('birch-outline');
 const moment = require('moment');
 const assert = require('assert');
@@ -309,7 +310,8 @@ function testRepeats (inputs) {
       item.setAttribute('data-done', '');
       assert.equal(2, outline.items.length);
       assertItemAttributes(outline.items[0], outputAttributes);
-      assertItemAttributes(outline.items[1], inputAttributes);
+      assertItemAttributes(outline.items[1], _.omit(inputAttributes, 'data-repeat'));
+      assert.equal(outline.items[1].getAttribute('data-repeat'), undefined)
       clock.uninstall();
     });
   })

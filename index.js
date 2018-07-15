@@ -123,6 +123,7 @@ function TaskPaperContext (editor, options) {
         return;
       try {
         item.parent.insertChildrenBefore(createRepeatItem(item), item);
+        item.removeAttribute('data-repeat');
       } catch (err) {
         item.setAttribute('data-error', err.message)
       }
