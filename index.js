@@ -31,11 +31,8 @@ function TaskPaperContext (editor, options) {
       return stringLastRepeatDate;
     }
     if (isNextDateRepeat(stringRepeatValue)) {
-      return getNextDateAnchor(
-        repeatFromDone ? stringNow : stringLastRepeatDate,
-        stringRepeatValue,
-        stringDurationOffset,
-      );
+      const maximumStringDate = repeatFromDone ? stringNow : stringLastRepeatDate;
+      return getNextDateAnchor(maximumStringDate, stringRepeatValue, stringDurationOffset);
     }
     throw new Error('invalid repeat value');
   }
@@ -122,9 +119,9 @@ function TaskPaperContext (editor, options) {
     if (typeof stringStart === 'string') {
       assertIsDay(stringStart, 'invalid start date');
     }
-      if (typeof stringDue === 'string') {
-        assertIsDay(stringDue, 'invalid due date');
-      }
+    if (typeof stringDue === 'string') {
+      assertIsDay(stringDue, 'invalid due date');
+    }
 
     // If no start, infer that start is the same as due
     var inferredStringStart = typeof stringStart === 'string' ? stringStart : stringDue;
@@ -136,8 +133,8 @@ function TaskPaperContext (editor, options) {
       var nextStringDue = getNextStringDueFromStart(inferredStringStart, stringDue, nextStringStart);
       newItem.setAttribute('data-due', nextStringDue);
     }
-      return newItem;
-    }
+    return newItem;
+  }
 
   function repeatAll () {
     editor.outline.groupUndoAndChanges(function () {
