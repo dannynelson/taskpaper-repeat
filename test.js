@@ -95,13 +95,25 @@ describe('TaskPaper repeat script', function () {
             outputAttributes: {[dateType]: '2018-01-01', 'data-repeat': 'year'},
           },
           {
-            description: 'repeats from done if early',
+            description: 'repeats when completed early',
+            currentDate: '2017-02-12',
+            inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday'},
+            outputAttributes: {[dateType]: '2017-03-13', 'data-repeat': 'Monday'},
+          },
+          {
+            description: 'repeats when completed late',
+            currentDate: '2017-04-12',
+            inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday'},
+            outputAttributes: {[dateType]: '2017-03-13', 'data-repeat': 'Monday'},
+          },
+          {
+            description: 'repeats from done when completed early',
             currentDate: '2017-02-12',
             inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
             outputAttributes: {[dateType]: '2017-02-13', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
           },
           {
-            description: 'repeats from done if late',
+            description: 'repeats from done when completed late',
             currentDate: '2017-04-12',
             inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
             outputAttributes: {[dateType]: '2017-04-17', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
