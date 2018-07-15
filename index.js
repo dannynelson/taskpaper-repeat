@@ -124,7 +124,7 @@ function TaskPaperContext (editor, options) {
       try {
         item.parent.insertChildrenBefore(createRepeatItem(item), item);
       } catch (err) {
-        item.setAttribute('data-repeat', 'Error: ' + err.message)
+        item.setAttribute('data-error', err.message)
       }
     });
   }
