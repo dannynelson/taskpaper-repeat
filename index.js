@@ -116,23 +116,35 @@ function TaskPaperContext (editor, options) {
     throw new Error('start or due required');
   }
 
+  function repeatAll () {
+    editor.outline.groupUndoAndChanges(function () {
+      editor.outline.items.forEach((item) => repeatUngrouped(item.id))
+    });
+  }
+
   function repeat (itemId) {
     editor.outline.groupUndoAndChanges(function () {
-      var item = editor.outline.getItemForID(itemId);
-      if (item.getAttribute('data-repeat') == null || item.getAttribute('data-done') == null)
-        return;
-      try {
-        item.parent.insertChildrenBefore(createRepeatItem(item), item);
-        item.removeAttribute('data-repeat');
-      } catch (err) {
-        item.setAttribute('data-error', err.message)
-      }
+      repeatUngrouped(itemId);
     });
+  }
+
+  function repeatUngrouped (itemId) {
+    var item = editor.outline.getItemForID(itemId);
+    item.setAttribute('data-editing')
+    if (item.getAttribute('data-repeat') == null || item.getAttribute('data-done') == null)
+      return;
+    try {
+      item.parent.insertChildrenBefore(createRepeatItem(item), item);
+      item.removeAttribute('data-repeat');
+    } catch (err) {
+      item.setAttribute('data-error', err.message)
+    }
   }
 
   if (this.taskPaperRepeatDisposable)
     this.taskPaperRepeatDisposable.dispose();
 
+  repeatAll();
   this.taskPaperRepeatDisposable = editor.outline.onDidChange(function (mutation) {
     var itemJustMarkedDone = mutation.type === Mutation.ATTRIBUTE_CHANGED &&
       mutation.attributeName === 'data-done' &&
