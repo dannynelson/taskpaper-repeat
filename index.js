@@ -1,16 +1,16 @@
 function TaskPaperContext (editor, options) {
   var ONE_DAY_IN_MS = 86400000;
 
-  function getNextRepeatDate (stringRepeatValue, stringLastRepeatDate) {
+  function getNextRepeatDate (stringRepeatValue, stringLastRepeatDate, repeatFromDone) {
     var stringDurationOffset = getStringDurationOffset(stringRepeatValue);
-    var stringDateAnchor = getStringDateAnchor(stringRepeatValue, stringLastRepeatDate);
-    return getNextRepeatDateForInputs(stringDateAnchor, stringDurationOffset, stringLastRepeatDate);
+    var stringDateAnchor = getStringDateAnchor(stringRepeatValue, stringLastRepeatDate, repeatFromDone, stringDurationOffset);
+    return addDurationOffset(stringDateAnchor, stringDurationOffset);
   }
 
   function getStringDurationOffset (stringRepeatValue) {
     if (isDurationOffsetRepeat(stringRepeatValue))
       return stringRepeatValue.slice(1);
-    if (isDateRepeat(stringRepeatValue)) {
+    if (isNextDateRepeat(stringRepeatValue)) {
       var quantityDurationOffsetDays = (DateTime.parse('next ' + stringRepeatValue) - DateTime.parse('this ' + stringRepeatValue)) / ONE_DAY_IN_MS;
       if (6 < quantityDurationOffsetDays && quantityDurationOffsetDays < 8) // rough estimate to account for daylight savings
         return '1 week';
@@ -23,21 +23,35 @@ function TaskPaperContext (editor, options) {
     throw new Error('invalid repeat value');
   }
 
-  function getStringDateAnchor (stringRepeatValue, stringLastRepeatDate) {
-    if (isDurationOffsetRepeat(stringRepeatValue))
+  function getStringDateAnchor (stringRepeatValue, stringLastRepeatDate, repeatFromDone, stringDurationOffset) {
+    const stringNow = DateTime.format(new Date());
+    if (isDurationOffsetRepeat(stringRepeatValue)) {
+      if (repeatFromDone)
+        return stringNow;
       return stringLastRepeatDate;
-    if (isDateRepeat(stringRepeatValue))
-      return 'last ' + stringRepeatValue;
+    }
+    if (isNextDateRepeat(stringRepeatValue)) {
+      return getNextDateAnchor(
+        repeatFromDone ? stringNow : stringLastRepeatDate,
+        stringRepeatValue,
+        stringDurationOffset,
+      );
+    }
     throw new Error('invalid repeat value');
   }
 
-  function getNextRepeatDateForInputs (stringDateAnchor, stringDurationOffset, stringLastRepeatDate) {
-    var dateMinimum = getDateMinimum(stringLastRepeatDate);
-    var dateNew = addDurationOffset(stringDateAnchor, stringDurationOffset);
-    while (dateNew.valueOf() <= dateMinimum.valueOf()) {
-      dateNew = addDurationOffset(DateTime.format(dateNew), stringDurationOffset);
+  function getNextDateAnchor (maximumStringDate, stringRepeatValue, stringDurationOffset) {
+    var maximumDate = DateTime.parse(maximumStringDate);
+    var testDateAnchor = DateTime.parse('last ' + stringRepeatValue);
+    // We want the anchor date just below (or equal to) the max.
+    // Push date above, than just below.
+    while (testDateAnchor.valueOf() < maximumDate.valueOf()) {
+      testDateAnchor = addDurationOffset(DateTime.format(testDateAnchor), stringDurationOffset);
     }
-    return dateNew;
+    while (testDateAnchor.valueOf() > maximumDate.valueOf()) {
+      testDateAnchor = subtractDurationOffset(DateTime.format(testDateAnchor), stringDurationOffset);
+    }
+    return DateTime.format(testDateAnchor);
   }
 
   function addDurationOffset (stringDateAnchor, stringDurationOffset) {
@@ -45,17 +59,16 @@ function TaskPaperContext (editor, options) {
     return DateTime.parse(stringDateAnchor + ' +' + stringDurationOffset);
   }
 
-  function getDateMinimum (stringLastRepeatDate) {
-    var msToday = DateTime.parse('today').valueOf();
-    var msLastRepeat = DateTime.parse(stringLastRepeatDate).valueOf();
-    return new Date(Math.max(msToday, msLastRepeat));
+  function subtractDurationOffset (stringDateAnchor, stringDurationOffset) {
+    // let DateTime do the addition to account for daylight savings
+    return DateTime.parse(stringDateAnchor + ' -' + stringDurationOffset);
   }
 
   function isDurationOffsetRepeat (stringDurationOffset) {
     return typeof stringDurationOffset === 'string' && stringDurationOffset[0] === '+' && DateTime.parse('today ' + stringDurationOffset) != null;
   }
 
-  function isDateRepeat (stringDay) {
+  function isNextDateRepeat (stringDay) {
     return typeof stringDay === 'string' && stringDay.length && DateTime.parse('next ' + stringDay) != null;
   }
 
@@ -68,24 +81,29 @@ function TaskPaperContext (editor, options) {
       throw new Error(errorMessage);
   }
 
-  function getNextDatesDue (stringRepeat, stringLastRepeatDate) {
+  function getNextDatesDue (stringRepeat, stringLastRepeatDate, repeatFromDone) {
     return stringRepeat.split(',').map(function (stringRepeatValue) {
-      return getNextRepeatDate(stringRepeatValue, stringLastRepeatDate);
+      return getNextRepeatDate(stringRepeatValue, stringLastRepeatDate, repeatFromDone);
     });
   }
 
-  function getEarliestNextRepeatDate (stringRepeat, stringLastRepeatDate) {
-    var nextDatesDue = getNextDatesDue(stringRepeat, stringLastRepeatDate);
+  function getEarliestNextRepeatDate (stringRepeat, stringLastRepeatDate, repeatFromDone) {
+    var nextDatesDue = getNextDatesDue(stringRepeat, stringLastRepeatDate, repeatFromDone);
     if (!nextDatesDue.length)
       throw new Error('invalid repeat values');
     return new Date(Math.min.apply(null, nextDatesDue));
   }
 
-  function getNextDateDueFromStart (stringStart, stringDue, nextStringStart) {
+  function getNextStringDueFromStart (stringStart, stringDue, nextStringStart) {
     var quantityMsDurationoffset = DateTime.parse(stringDue).valueOf() - DateTime.parse(stringStart).valueOf();
+    // Hack to avoid parsing timezones if possible
+    if (quantityMsDurationoffset === 0) {
+      return nextStringStart;
+    }
     var operator = quantityMsDurationoffset >= 0 ? '+' : '-';
-    // FIXME: this offsets by an hour when crossing daylight savings
-    return DateTime.parse(nextStringStart + ' ' + operator + Math.abs(quantityMsDurationoffset) + ' milliseconds');
+    // TODO: this offsets by an hour when crossing daylight savings
+    const nextDateDue = DateTime.parse(nextStringStart + ' ' + operator + Math.abs(quantityMsDurationoffset) + ' milliseconds');
+    return DateTime.format(nextDateDue);
   }
 
   function createRepeatItem (item) {
@@ -97,24 +115,29 @@ function TaskPaperContext (editor, options) {
     var stringRepeat = newItem.getAttribute('data-repeat');
     var stringStart = newItem.getAttribute('data-start');
     var stringDue = newItem.getAttribute('data-due');
+    var repeatFromDone = newItem.getAttribute('data-repeat-from-done') != null;
+    if (typeof stringStart !== 'string' && typeof stringDue !== 'string') {
+      throw new Error('start or due required');
+    }
     if (typeof stringStart === 'string') {
       assertIsDay(stringStart, 'invalid start date');
-      var nextStringStart = DateTime.format(getEarliestNextRepeatDate(stringRepeat, stringStart));
-      newItem.setAttribute('data-start', nextStringStart);
+    }
       if (typeof stringDue === 'string') {
         assertIsDay(stringDue, 'invalid due date');
-        var nextDateDue = getNextDateDueFromStart(stringStart, stringDue, nextStringStart);
-        newItem.setAttribute('data-due', DateTime.format(nextDateDue));
       }
-      return newItem;
+
+    // If no start, infer that start is the same as due
+    var inferredStringStart = typeof stringStart === 'string' ? stringStart : stringDue;
+    var nextStringStart = DateTime.format(getEarliestNextRepeatDate(stringRepeat, inferredStringStart, repeatFromDone));
+    if (typeof stringStart === 'string') {
+      newItem.setAttribute('data-start', nextStringStart);
     }
     if (typeof stringDue === 'string') {
-      assertIsDay(stringDue, 'invalid due date');
-      newItem.setAttribute('data-due', DateTime.format(getEarliestNextRepeatDate(stringRepeat, stringDue)));
+      var nextStringDue = getNextStringDueFromStart(inferredStringStart, stringDue, nextStringStart);
+      newItem.setAttribute('data-due', nextStringDue);
+    }
       return newItem;
     }
-    throw new Error('start or due required');
-  }
 
   function repeatAll () {
     editor.outline.groupUndoAndChanges(function () {

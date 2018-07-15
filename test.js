@@ -94,6 +94,18 @@ describe('TaskPaper repeat script', function () {
             inputAttributes: {[dateType]: DAY_BEFORE_DAYLIGHT_SAVINGS, 'data-repeat': 'year'},
             outputAttributes: {[dateType]: '2018-01-01', 'data-repeat': 'year'},
           },
+          {
+            description: 'repeats from done if early',
+            currentDate: '2017-02-12',
+            inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
+            outputAttributes: {[dateType]: '2017-02-13', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
+          },
+          {
+            description: 'repeats from done if late',
+            currentDate: '2017-04-12',
+            inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
+            outputAttributes: {[dateType]: '2017-04-17', 'data-repeat': 'Monday', 'data-repeat-from-done': ''},
+          },
         ]);
       });
     })
@@ -105,20 +117,20 @@ describe('TaskPaper repeat script', function () {
         testRepeats([
           {
             description: 'repeats next "Monday,Wednesday,Friday" to Monday',
-            currentDate: DAY_BEFORE_DAYLIGHT_SAVINGS,
-            inputAttributes: {[dateType]: DAY_BEFORE_DAYLIGHT_SAVINGS, 'data-repeat': 'Monday,Wednesday,Friday'},
+            currentDate: '2017-03-12',
+            inputAttributes: {[dateType]: '2017-03-12', 'data-repeat': 'Monday,Wednesday,Friday'},
             outputAttributes: {[dateType]: '2017-03-13', 'data-repeat': 'Monday,Wednesday,Friday'},
           },
           {
             description: 'repeats next "Monday,Wednesday,Friday" to Wednesday',
             currentDate: '2017-03-14',
-            inputAttributes: {[dateType]: DAY_BEFORE_DAYLIGHT_SAVINGS, 'data-repeat': 'Monday,Wednesday,Friday'},
+            inputAttributes: {[dateType]: '2017-03-13', 'data-repeat': 'Monday,Wednesday,Friday'},
             outputAttributes: {[dateType]: '2017-03-15', 'data-repeat': 'Monday,Wednesday,Friday'},
           },
           {
             description: 'repeats next "Monday,Wednesday,Friday" to Friday',
             currentDate: '2017-03-16',
-            inputAttributes: {[dateType]: DAY_BEFORE_DAYLIGHT_SAVINGS, 'data-repeat': 'Monday,Wednesday,Friday'},
+            inputAttributes: {[dateType]: '2017-03-15', 'data-repeat': 'Monday,Wednesday,Friday'},
             outputAttributes: {[dateType]: '2017-03-17', 'data-repeat': 'Monday,Wednesday,Friday'},
           },
           {
@@ -165,6 +177,12 @@ describe('TaskPaper repeat script', function () {
             currentDate: '2017-03-15',
             inputAttributes: {[dateType]: DAY_BEFORE_DAYLIGHT_SAVINGS, 'data-repeat': '+1 year'},
             outputAttributes: {[dateType]: '2018-03-11', 'data-repeat': '+1 year'},
+          },
+          {
+            description: 'repeats from done',
+            currentDate: '2017-03-01 06:00',
+            inputAttributes: {[dateType]: '2017-03-02', 'data-repeat': '+1 week', 'data-repeat-from-done': ''},
+            outputAttributes: {[dateType]: '2017-03-08 06:00', 'data-repeat': '+1 week', 'data-repeat-from-done': ''},
           },
         ]);
       });
@@ -274,16 +292,6 @@ describe('TaskPaper repeat script', function () {
     assertItemAttributes(outline.items[0], {'data-due': '2017-03-13', 'data-repeat': 'Monday'});
     assert.equal(1, outline.items[0].children.length);
     assert.equal(undefined, outline.items[0].children[0].getAttribute('data-done'));
-    clock.uninstall();
-  });
-
-  it('repeats to today or later', function () {
-    const clock = lolex.install(moment('2017-03-04 07:00').toDate());
-    const outline = createOutlineAndRunScript();
-    const item = createItem(outline, {'data-due': '2017-01-01', 'data-repeat': '+1 day'});
-    outline.root.appendChildren(item);
-    item.setAttribute('data-done', '');
-    assertItemAttributes(outline.items[0], {'data-due': '2017-03-05', 'data-repeat': '+1 day'});
     clock.uninstall();
   });
 
