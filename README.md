@@ -2,9 +2,7 @@
 A script for managing recurring tasks in [TaskPaper 3](https://www.taskpaper.com/). After running the script, whenever a task with a `@repeat` value is marked `@done`, the script immediately duplicates the task and increments the `@start` and `@due` dates.
 
 ## Usage
-Download the [latest release `repeat.scpt` file](https://github.com/dannynelson/taskpaper-repeat/releases), and [install it in TaskPaper's Command Pallet](https://guide.taskpaper.com/using-taskpaper/using-scripts.html).
-
-You can [run the script manually](https://guide.taskpaper.com/using-taskpaper/using-scripts.html) or run the script automatically when TaskPaper launches using a tool like [Alfred](https://www.alfredapp.com/workflows/) or [Keyboard Maestro](http://www.keyboardmaestro.com/main/).
+Download the [latest release `repeat.scpt` file](https://github.com/dannynelson/taskpaper-repeat/releases), and [install it in TaskPaper's Command Pallet](https://guide.taskpaper.com/using-taskpaper/using-scripts.html). You can [run the script manually](https://guide.taskpaper.com/using-taskpaper/using-scripts.html) or run the script automatically when TaskPaper launches using a tool like [Alfred](https://www.alfredapp.com/workflows/) or [Keyboard Maestro](http://www.keyboardmaestro.com/main/).
 
 ### @repeat
 Add a `@start` and/or `@due` date, and a `@repeat` value to your recurring task. The `@repeat` value can be:
