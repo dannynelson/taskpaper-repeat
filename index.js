@@ -24,7 +24,7 @@ function TaskPaperContext (editor, options) {
   }
 
   function getStringDateAnchor (stringRepeatValue, stringLastRepeatDate, repeatFromDone, stringDurationOffset) {
-    const stringNow = DateTime.format(new Date());
+    var stringNow = DateTime.format(new Date());
     if (isDurationOffsetRepeat(stringRepeatValue)) {
       if (repeatFromDone)
         return stringNow;
@@ -102,7 +102,7 @@ function TaskPaperContext (editor, options) {
     }
     var operator = quantityMsDurationoffset >= 0 ? '+' : '-';
     // TODO: this offsets by an hour when crossing daylight savings
-    const nextDateDue = DateTime.parse(nextStringStart + ' ' + operator + Math.abs(quantityMsDurationoffset) + ' milliseconds');
+    var nextDateDue = DateTime.parse(nextStringStart + ' ' + operator + Math.abs(quantityMsDurationoffset) + ' milliseconds');
     return DateTime.format(nextDateDue);
   }
 
